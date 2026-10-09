@@ -55,6 +55,12 @@ Difficulty -> Easy (range 1-20): Secret still 38, prompt still says "between 1 a
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
 - Give one example of an AI suggestion you did not accept as written (including what the AI suggested, why you rejected or changed it, and how you verified your version). It does not have to be a suggestion that was wrong: over-engineered, out of scope, harder to read, or a poor fit for this codebase all count.
 
+I used Claude Code as my AI coding assistant. I gave it `app.py`, `logic_utils.py` and the tests, along with the bugs from my log, and worked through them one at a time.
+
+**A suggestion that was correct.** I asked why a guess of 8 counted as "Too High" when the secret was 77. The AI explained that on even attempts `app.py` turned the secret into the string "77". Then `8 > "77"` raised a `TypeError`, and the `except` branch compared `"8" > "77"` as text, which is true because "8" comes after "7". Its fix was to stop converting the secret and always compare two ints. I checked the explanation against my bug log: the wrong result only happened on even attempts, which matched. I then added `test_small_guess_is_too_low_not_compared_as_text`, which checks `check_guess(8, 77)` and `check_guess(8, "77")`, and played the fixed game. A guess of 8 against 72 now says "📈 Go HIGHER!" and takes 5 points off.
+
+**A suggestion I did not accept as written.** The starter tests expect `check_guess(50, 50) == "Win"`, but the game's `check_guess` returned a pair like `("Win", "🎉 Correct!")`. One fix the AI offered was to keep the pair and edit the three starter tests to unpack it. That would have been the smaller change, but I rejected it because it changes the tests to fit the code when the tests describe what the function is supposed to do. I chose the other option: `check_guess` returns only the outcome, and the hint text moved into a small `get_hint_message` helper. To verify it, I ran the three starter tests unchanged and they all pass, and I checked in the game that the hint messages still show up.
+
 ---
 
 ## 3. Debugging and testing your fixes
@@ -64,11 +70,15 @@ Difficulty -> Easy (range 1-20): Secret still 38, prompt still says "between 1 a
   and what it showed you about your code.
 - Did AI help you design or understand any tests? How?
 
+I counted a bug as fixed only when three things were true. A pytest test using the exact input from my bug log passed, the same input behaved correctly in the running game, and the three starter tests still passed. For example, `test_wrong_guess_never_adds_points` checks every attempt from 1 to 8 and showed that a wrong guess now always costs 5 points, whether the attempt number is even or odd. Running the tests also turned up a setup problem. `python -m pytest` worked, but plain `pytest` failed with an import error because it couldn't find `logic_utils` from the `tests` folder, so I added a `pytest.ini` with `pythonpath = .`. The AI helped write the tests from my bug log rows, and I checked that each test matched a real row and would have failed on the starter code. I also replayed the game by hand: a win, a loss on Hard, New Game after each one, and a switch to Easy. That's how I confirmed the state fixes, since those live in `app.py` and aren't covered by pytest.
+
 ---
 
 ## 4. What did you learn about Streamlit and state?
 
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
+
+Every time you click a button or type in a box, Streamlit runs your whole script again from the top. That's a "rerun". A normal variable gets created again on each rerun, so it forgets its old value. `st.session_state` is a dictionary that survives reruns, so it's where the game keeps the secret, the attempts, the score and the status. This project showed me that the order of the script matters too. The starter code drew "Attempts left" before it handled the guess, so the number on screen was always one guess behind until I filled that spot in at the end of the script.
 
 ---
 
@@ -78,3 +88,5 @@ Difficulty -> Easy (range 1-20): Secret still 38, prompt still says "between 1 a
   - This could be a testing habit, a prompting strategy, or a way you used Git.
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+
+The habit I want to keep is writing a bug log with exact inputs before fixing anything, then turning each row into a test. That gave me a clear way to say "this is fixed" instead of guessing. I also want to keep committing after each phase, which made my history easy to follow. Next time, I'll ask the AI to explain a bug before I ask it for a fix, and I'll fix one bug per conversation, because its explanations were most useful when I could check them against something I had already seen. This project showed me that AI-generated code can run, look finished, and still be wrong in quiet ways, so "it runs" is where my checking starts, not where it ends.
