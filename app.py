@@ -33,6 +33,7 @@ def check_guess(guess, secret):
     if guess == secret:
         return "Win", "🎉 Correct!"
 
+    # FIXME: Logic breaks here - "Too High" is paired with "Go HIGHER!" (hints are backwards)
     try:
         if guess > secret:
             return "Too High", "📈 Go HIGHER!"
@@ -54,6 +55,7 @@ def update_score(current_score: int, outcome: str, attempt_number: int):
             points = 10
         return current_score + points
 
+    # FIXME: Logic breaks here - a wrong "Too High" guess adds points on even attempts
     if outcome == "Too High":
         if attempt_number % 2 == 0:
             return current_score + 5
@@ -92,6 +94,7 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
+# FIXME: Logic breaks here - attempts starts at 1 here but at 0 after New Game
 if "attempts" not in st.session_state:
     st.session_state.attempts = 1
 
@@ -107,6 +110,7 @@ if "history" not in st.session_state:
 st.subheader("Make a guess")
 
 st.info(
+    # FIXME: Logic breaks here - range is hard-coded and ignores the difficulty
     f"Guess a number between 1 and 100. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
@@ -131,6 +135,7 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+# FIXME: Logic breaks here - New Game never resets status, score or history, and ignores difficulty
 if new_game:
     st.session_state.attempts = 0
     st.session_state.secret = random.randint(1, 100)
@@ -155,6 +160,7 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
+        # FIXME: Logic breaks here - secret becomes a string on even attempts, so numbers compare as text
         if st.session_state.attempts % 2 == 0:
             secret = str(st.session_state.secret)
         else:
