@@ -1,3 +1,7 @@
+**Name:** Tanvir Anjum Joarder  
+**Z Number:** Z23981706  
+**Course:** AI110 Foundations of AI Engineering, Fall 2026 (CodePath @ FAU)
+
 # 🎮 Game Glitch Investigator: The Impossible Guesser
 
 ## 🚨 The Situation
